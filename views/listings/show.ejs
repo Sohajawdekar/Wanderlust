@@ -1,0 +1,151 @@
+<% layout('/layouts/boilerplate') -%>
+  <script>
+    let mapToken = "<%=process.env.MAP_TOKEN%>";
+    const coordinates =<%- JSON.stringify(listing.geometry.coordinates) %>
+    console.log("Coordinates:", coordinates);
+  </script>
+
+  <body>
+    <div class="row">
+      <div class="col-8 offset-2">
+        <h3 class="header mb-3 mt-3" style="text-align: center;">
+          <%= listing.title %>
+        </h3>
+        <div class="card ">
+          <img src="<%= listing.image.url %>" class="card-img-top listing-img" alt="listing-image">
+          <div class="accordion accordion-flush" id="accordionFlushExample">
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
+                  Description
+                </button>
+              </h2>
+              <div id="flush-collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
+                <div class="accordion-body"> <%= listing.description %></div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseTwo" aria-expanded="false" aria-controls="flush-collapseTwo">
+                  Owned By
+                </button>
+              </h2>
+              <div id="flush-collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
+                <div class="accordion-body"><%= listing.owner.username %></div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseThree" aria-expanded="false" aria-controls="flush-collapseThree">
+                  Location
+                </button>
+              </h2>
+              <div id="flush-collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
+                <div class="accordion-body"><%= listing.location%>, <%= listing.country%></div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseThree" aria-expanded="false" aria-controls="flush-collapseThree">
+                  Price
+                </button>
+              </h2>
+              <div id="flush-collapseFour" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
+                <div class="accordion-body">&#8377; <%= listing.price.toLocaleString("en-IN") %></div>
+              </div>
+            </div>
+          </div>
+            
+            <% if(CurrUser && CurrUser._id.equals(listing.owner._id)){ %>
+              <div class="row">
+                <form action="/Listings/<%= listing._id %>/edit">
+                  <button class="btn btn-primary col-2 listing-controls">Edit</button>
+                </form>
+                <form action="/Listings/<%= listing._id %>?_method=DELETE" method="post">
+                  <button class=" btn btn-dark btn-review listing-controls col-2">Delete</button>
+                </form>
+              </div>
+              <% } %>
+
+
+          </div>
+        </div>
+      </div>
+    </div>
+    <hr>
+    <div class="location-display offset-1">
+      <h3 class="mb-4">Where you'll be</h3>
+      <div id="map" class="col-8 "></div>
+      <script src="/js/map.js"></script>
+    </div>
+    <hr>
+    <h4 class="offset-1">Reviews</h4> 
+    <div class="review-display offset-1 ">
+      <% for(review of listing.reviews){ %>
+        <div class="card review ms-4" style="width: 18rem; ">
+          <div class="card-body">
+            <h5 class="card-title">
+              <%= review.author.username %>
+            </h5>
+            <h5 class="card-title">
+              <%= review.rating %> Stars
+            </h5>
+            <p class="starability-result" data-rating="<%= (review.rating) %>">
+
+            </p>
+            <!-- <h6 class="card-subtitle mb-2 text-body-secondary">Card subtitle</h6> -->
+            <p class="card-text">
+              <%= review.comment %>
+            </p>
+            <% if(CurrUser && CurrUser._id.equals(review.author._id)){ %>
+              <form action="/Listings/<%= listing._id %>/review/<%= review._id %>?_method=DELETE" method="post">
+                <button class="btn btn-primary ms-1 btn-review">Delete</button>
+              </form>
+              <% } %>
+          </div>
+        </div>
+        <% } %>
+    </div>
+
+
+    <hr>
+    <% if(CurrUser){ %>
+      <div class="submit-reviews">
+        <form action="/Listings/<%= listing.id %>/review" method="post"
+          class="row g-3 needs-validation new-entry col-8 offset-2" novalidate>
+          <h3 class="header">Leave a review</h3>
+          <div class="row-md-4">
+            <label for="validationCustom02" class="form-label card-text">Rating</label>
+            <fieldset class="starability-slot">
+              <input type="radio" id="no-rate" class="input-no-rate" name="rating" value="1" checked
+                aria-label="No rating." />
+              <input type="radio" id="first-rate1" name="rating" value="1" />
+              <label for="first-rate1" title="Terrible">1 star</label>
+              <input type="radio" id="first-rate2" name="rating" value="2" />
+              <label for="first-rate2" title="Not good">2 stars</label>
+              <input type="radio" id="first-rate3" name="rating" value="3" />
+              <label for="first-rate3" title="Average">3 stars</label>
+              <input type="radio" id="first-rate4" name="rating" value="4" />
+              <label for="first-rate4" title="Very good">4 stars</label>
+              <input type="radio" id="first-rate5" name="rating" value="5" />
+              <label for="first-rate5" title="Amazing">5 stars</label>
+            </fieldset>
+
+          </div>
+
+          <div class="row-md-4">
+            <label for="validationCustom02" class="form-label card-text">Comments</label>
+            <textarea type="text" class="form-control description" id="validationCustom02" name="comment"
+              required></textarea>
+            <div class="valid-feedback">
+              Looks good!
+            </div>
+          </div>
+          <div class="row-12">
+            <button class="btn btn-primary" type="submit">Submit </button>
+          </div>
+      </div>
+      <% } %>
+
+
+  </body>
